@@ -705,28 +705,30 @@ tcp_recved(struct tcp_pcb *pcb, u16_t len)
  * @return a new (free) local TCP port number
  */
 static u16_t
-tcp_new_port(void)
-{
-  u8_t i;
-  u16_t n = 0;
-  struct tcp_pcb *pcb;
+tcp_new_port(void) {
+    u8_t i;
+    u16_t n = 0;
+    struct tcp_pcb *pcb;
+    srand((u16_t) time(NULL));
 
 again:
-  if (tcp_port++ == TCP_LOCAL_PORT_RANGE_END) {
-    tcp_port = TCP_LOCAL_PORT_RANGE_START;
-  }
-  /* Check all PCB lists. */
-  for (i = 0; i < NUM_TCP_PCB_LISTS; i++) {
-    for (pcb = *tcp_pcb_lists[i]; pcb != NULL; pcb = pcb->next) {
-      if (pcb->local_port == tcp_port) {
-        if (++n > (TCP_LOCAL_PORT_RANGE_END - TCP_LOCAL_PORT_RANGE_START)) {
-          return 0;
+    tcp_port = TCP_LOCAL_PORT_RANGE_START + rand() % (TCP_LOCAL_PORT_RANGE_END - TCP_LOCAL_PORT_RANGE_START);
+    /*
+    if (tcp_port++ == TCP_LOCAL_PORT_RANGE_END) {
+      tcp_port = TCP_LOCAL_PORT_RANGE_START;
+    }*/
+    /* Check all PCB lists. */
+    for (i = 0; i < NUM_TCP_PCB_LISTS; i++) {
+        for (pcb = *tcp_pcb_lists[i]; pcb != NULL; pcb = pcb->next) {
+            if (pcb->local_port == tcp_port) {
+                if (++n > (TCP_LOCAL_PORT_RANGE_END - TCP_LOCAL_PORT_RANGE_START)) {
+                    return 0;
+                }
+                goto again;
+            }
         }
-        goto again;
-      }
     }
-  }
-  return tcp_port;
+    return tcp_port;
 }
 
 /**
